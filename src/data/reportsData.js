@@ -1,0 +1,26 @@
+export const reportsData = [
+  {
+    reportId: "RPT-001",
+    caseId: "INV-001",
+    exam: "SSC Board Exam",
+    center: "Pune Center",
+    risk: "87%",
+    probability: "92%",
+    confidence: "96%",
+    source: "Printing Press",
+    status: "Generated",
+    date: "07 Aug 2026",
+  },
+  {
+    reportId: "RPT-002",
+    caseId: "INV-002",
+    exam: "HSC Board Exam",
+    center: "Nashik Center",
+    risk: "74%",
+    probability: "81%",
+    confidence: "89%",
+    source: "Transport",
+    status: "Generated",
+    date: "06 Aug 2026",
+  },
+];
