@@ -9,16 +9,14 @@ import { statsData } from "../data/dashboardData";
 
 export default function Dashboard() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
+      {/* Dashboard Header */}
       <DashboardHeader />
-
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
-
         {statsData.map((item) => (
-
           <StatsCard
             key={item.title}
             title={item.title}
@@ -27,48 +25,37 @@ export default function Dashboard() {
             icon={item.icon}
             color={item.color}
           />
-
         ))}
-
       </div>
 
+      {/* Main Dashboard Grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-stretch">
 
+        {/* LEFT SIDE */}
+        <div className="xl:col-span-2 flex flex-col gap-6 min-w-0">
 
-      {/* Chart + Right Side Panels */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-
-        {/* Left - Investigation Chart */}
-        <div className="xl:col-span-2">
-
+          {/* Investigation Chart */}
           <InvestigationChart />
 
+          {/* Recent Leak Cases */}
+          <RecentCasesTable />
+
         </div>
 
+        {/* RIGHT SIDE */}
+        <div className="flex flex-col gap-6 min-w-0 h-full">
 
-
-        {/* Right - Activity & Status */}
-        <div className="flex flex-col gap-6 xl:h-[680px]">
-
+          {/* Activity Timeline */}
           <ActivityTimeline />
 
-          <SystemStatus />
+          {/* System Status - Fill remaining height */}
+          <div className="flex-1 min-h-0 [&>div]:h-full">
+            <SystemStatus />
+          </div>
 
         </div>
 
-
       </div>
-
-
-
-      {/* Recent Leak Cases */}
-
-      <div>
-
-        <RecentCasesTable />
-
-      </div>
-
 
     </div>
   );

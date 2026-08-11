@@ -1,19 +1,18 @@
-export default function RememberMe() {
-  return (
-    <div className="flex items-center justify-between mt-4">
-      <label className="flex items-center gap-2">
-        <input type="checkbox" />
-        <span className="text-sm">
-          Remember Me
-        </span>
-      </label>
+import { useState } from "react";
 
-      <button
-        type="button"
-        className="text-blue-600 text-sm"
-      >
-        Forgot Password?
-      </button>
-    </div>
+export default function RememberMe() {
+  const [remember, setRemember] = useState(false);
+
+  return (
+    <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+      <input
+        type="checkbox"
+        checked={remember}
+        onChange={(e) => setRemember(e.target.checked)}
+        className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+      />
+
+      <span>Remember Me</span>
+    </label>
   );
 }

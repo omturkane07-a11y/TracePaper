@@ -34,31 +34,50 @@ const statusData = [
 
 export default function SystemStatus() {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex-1 min-h-0">
-      <h2 className="text-xl font-bold mb-5">
-        System Status
-      </h2>
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
 
+      {/* Header */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-slate-800">
+          System Status
+        </h2>
+
+        <p className="text-sm text-slate-500 mt-1">
+          Current system health
+        </p>
+      </div>
+
+      {/* Status List */}
       <div className="space-y-4">
-        {statusData.map((item, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between border-b pb-3 last:border-none"
-          >
-            <div className="flex items-center gap-3">
-              <item.icon className={item.color} size={22} />
+        {statusData.map((item, index) => {
+          const Icon = item.icon;
 
-              <span className="font-medium">
-                {item.title}
+          return (
+            <div
+              key={index}
+              className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-none"
+            >
+              <div className="flex items-center gap-3">
+
+                <Icon
+                  className={item.color}
+                  size={22}
+                />
+
+                <span className="font-medium text-slate-800">
+                  {item.title}
+                </span>
+
+              </div>
+
+              <span className="text-sm font-semibold text-slate-600">
+                {item.status}
               </span>
             </div>
-
-            <span className="text-sm font-semibold text-slate-600">
-              {item.status}
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
     </div>
   );
 }

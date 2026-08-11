@@ -1,6 +1,14 @@
-import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Routes,
+  Route,
+} from "react-router-dom";
 
 import Login from "../pages/Login";
+import Register from "../pages/Register";
+import ForgotPassword from "../pages/ForgotPassword";
+
 import Dashboard from "../pages/Dashboard";
 import Investigations from "../pages/Investigations";
 import InvestigationDetails from "../pages/InvestigationDetails";
@@ -10,33 +18,52 @@ import Users from "../pages/Users";
 import AuditTrail from "../pages/AuditTrail";
 import LeakDetection from "../pages/LeakDetection";
 import Settings from "../pages/Settings";
+
+import QuestionPaper from "../pages/QuestionPaper";
+import WatermarkVerification from "../pages/WatermarkVerification";
+
 import NotFound from "../pages/NotFound";
 
 import MainLayout from "../components/layout/MainLayout";
 import ProtectedRoute from "../components/common/ProtectedRoute";
 
-
 export default function AppRoutes() {
-
   return (
-
     <BrowserRouter>
-
       <Routes>
 
-        {/* Root URL routes to login as the first entry page */}
+        {/* =========================
+            ROOT
+        ========================== */}
+
         <Route
           path="/"
           element={<Navigate to="/login" replace />}
         />
 
-        {/* Login */}
+        {/* =========================
+            AUTHENTICATION
+        ========================== */}
+
         <Route
           path="/login"
           element={<Login />}
         />
 
-        {/* Main Dashboard Layout */}
+        <Route
+          path="/register"
+          element={<Register />}
+        />
+
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword />}
+        />
+
+        {/* =========================
+            PROTECTED APPLICATION
+        ========================== */}
+
         <Route
           element={
             <ProtectedRoute>
@@ -45,13 +72,37 @@ export default function AppRoutes() {
           }
         >
 
-          {/* Dashboard */}
+          {/* =========================
+              DASHBOARD
+          ========================== */}
+
           <Route
             path="/dashboard"
             element={<Dashboard />}
           />
 
-          {/* Investigations */}
+          {/* =========================
+              QUESTION PAPER
+          ========================== */}
+
+          <Route
+            path="/question-paper"
+            element={<QuestionPaper />}
+          />
+
+          {/* =========================
+              WATERMARK VERIFICATION
+          ========================== */}
+
+          <Route
+            path="/watermark-verification"
+            element={<WatermarkVerification />}
+          />
+
+          {/* =========================
+              INVESTIGATIONS
+          ========================== */}
+
           <Route
             path="/investigations"
             element={<Investigations />}
@@ -62,37 +113,64 @@ export default function AppRoutes() {
             element={<InvestigationDetails />}
           />
 
-          {/* Analytics */}
+          {/* =========================
+              ANALYTICS
+          ========================== */}
+
           <Route
             path="/analytics"
             element={<Analytics />}
           />
 
-          {/* Reports */}
+          {/* =========================
+              REPORTS
+          ========================== */}
+
           <Route
             path="/reports"
             element={<Reports />}
           />
 
-          {/* Audit Trail */}
+          {/* =========================
+              AUDIT TRAIL
+          ========================== */}
+
           <Route
             path="/audit-trail"
             element={<AuditTrail />}
           />
 
-          {/* Leak Detection */}
+          {/* =========================
+              LEAK ALERTS
+          ========================== */}
+
+          <Route
+            path="/leak-alerts"
+            element={<LeakDetection />}
+          />
+
+          {/* =========================
+              LEAK DETECTION
+          ========================== */}
+
           <Route
             path="/leak-detection"
             element={<LeakDetection />}
           />
 
-          {/* Users */}
+          {/* =========================
+              USERS
+          ========================== */}
+
           <Route
             path="/users"
             element={<Users />}
           />
 
-          {/* Settings */}
+          {/* =========================
+              SETTINGS
+          ========================== */}
+
           <Route
             path="/settings"
             element={<Settings />}
@@ -100,16 +178,16 @@ export default function AppRoutes() {
 
         </Route>
 
-        {/* Not Found */}
+        {/* =========================
+            404
+        ========================== */}
+
         <Route
           path="*"
           element={<NotFound />}
         />
 
       </Routes>
-
     </BrowserRouter>
-
   );
-
 }

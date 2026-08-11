@@ -2,144 +2,158 @@ import { NavLink } from "react-router-dom";
 
 import {
   LayoutDashboard,
-  Search,
+  FilePlus2,
+  FileSearch,
   ShieldCheck,
+  ShieldAlert,
   FileText,
   Users,
   BarChart3,
-  Settings
+  Settings,
 } from "lucide-react";
 
+export default function Sidebar() {
+  const menuItems = [
+    {
+      title: "Dashboard",
+      path: "/dashboard",
+      icon: LayoutDashboard,
+    },
 
-export default function Sidebar(){
+    {
+      title: "Question Paper",
+      path: "/question-paper",
+      icon: FilePlus2,
+    },
 
+    {
+      title: "Watermark Verification",
+      path: "/watermark-verification",
+      icon: ShieldCheck,
+    },
 
-const menuItems = [
+    {
+      title: "Investigations",
+      path: "/investigations",
+      icon: FileSearch,
+    },
 
-{
-name:"Dashboard",
-path:"/dashboard",
-icon:<LayoutDashboard size={20}/>
-},
+    {
+      title: "Leak Alerts",
+      path: "/leak-alerts",
+      icon: ShieldAlert,
+    },
 
+    {
+      title: "Reports",
+      path: "/reports",
+      icon: FileText,
+    },
 
-{
-name:"Investigations",
-path:"/investigations",
-icon:<Search size={20}/>
-},
+    {
+      title: "Users",
+      path: "/users",
+      icon: Users,
+    },
 
+    {
+      title: "Analytics",
+      path: "/analytics",
+      icon: BarChart3,
+    },
 
-{
-name:"Audit Trail",
-path:"/audit-trail",
-icon:<ShieldCheck size={20}/>
-},
+    {
+      title: "Settings",
+      path: "/settings",
+      icon: Settings,
+    },
+  ];
 
+  return (
+    <aside className="w-64 min-h-screen bg-slate-950 text-white flex flex-col">
 
-{
-name:"Leak Detection",
-path:"/leak-detection",
-icon:<ShieldCheck size={20}/>
-},
+      {/* LOGO */}
 
+      <div className="h-20 px-6 flex items-center border-b border-slate-800">
 
-{
-name:"Reports",
-path:"/reports",
-icon:<FileText size={20}/>
-},
+        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center mr-3">
 
+          <ShieldCheck size={22} />
 
-{
-name:"Users",
-path:"/users",
-icon:<Users size={20}/>
-},
+        </div>
 
+        <div>
 
-{
-name:"Analytics",
-path:"/analytics",
-icon:<BarChart3 size={20}/>
-},
+          <h1 className="text-lg font-bold tracking-wide">
+            TracePaper
+          </h1>
 
+          <p className="text-xs text-slate-400">
+            Enterprise Security
+          </p>
 
-{
-name:"Settings",
-path:"/settings",
-icon:<Settings size={20}/>
-}
+        </div>
 
-];
+      </div>
 
+      {/* MENU */}
 
+      <nav className="flex-1 p-4 space-y-2">
 
-return (
+        {menuItems.map((item) => {
 
-<div className="w-64 min-h-screen bg-slate-900 text-white p-5">
+          const Icon = item.icon;
 
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-xl transition ${
+                  isActive
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                    : "text-slate-400 hover:bg-slate-900 hover:text-white"
+                }`
+              }
+            >
 
-<h1 className="text-2xl font-bold mb-8">
-TracePaper
-</h1>
+              <Icon size={20} />
 
+              <span className="font-medium">
+                {item.title}
+              </span>
 
+            </NavLink>
+          );
 
-<nav className="space-y-2">
+        })}
 
+      </nav>
 
-{
-menuItems.map((item)=>(
+      {/* SECURITY STATUS */}
 
+      <div className="p-4 border-t border-slate-800">
 
-<NavLink
+        <div className="p-4 rounded-xl bg-slate-900">
 
-key={item.name}
+          <div className="flex items-center gap-2">
 
-to={item.path}
+            <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
 
-className={({isActive}) =>
+            <span className="text-sm font-semibold text-slate-200">
+              System Secure
+            </span>
 
-`
-flex items-center gap-3 px-4 py-3 rounded-lg transition
+          </div>
 
-${
-isActive
-?
-"bg-blue-600 text-white"
-:
-"text-slate-300 hover:bg-slate-800"
-}
+          <p className="text-xs text-slate-500 mt-2">
+            TracePaper security services active
+          </p>
 
-`
+        </div>
 
-}
+      </div>
 
->
-
-
-{item.icon}
-
-
-<span>
-{item.name}
-</span>
-
-
-</NavLink>
-
-
-))
-
-}
-
-
-</nav>
-
-
-</div>
-
-)
-
+    </aside>
+  );
 }

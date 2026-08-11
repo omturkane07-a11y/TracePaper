@@ -34,30 +34,46 @@ const activities = [
 
 export default function ActivityTimeline() {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex-1 min-h-0 overflow-y-auto">
-      <h2 className="text-xl font-bold mb-4">
-        Recent Activity
-      </h2>
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      
+      {/* Header */}
+      <div className="mb-6">
+        <h2 className="text-xl font-bold text-slate-800">
+          Recent Activity
+        </h2>
 
+        <p className="text-sm text-slate-500 mt-1">
+          Latest activity in TracePaper
+        </p>
+      </div>
+
+      {/* Activities */}
       <div className="space-y-4">
-        {activities.map((item, index) => (
-          <div
-            key={index}
-            className="flex items-center gap-3 border-b pb-3 last:border-none"
-          >
-            <item.icon className={item.color} size={20} />
+        {activities.map((item, index) => {
+          const Icon = item.icon;
 
-            <div>
-              <h3 className="font-semibold">
-                {item.title}
-              </h3>
+          return (
+            <div
+              key={index}
+              className="flex items-center gap-3 border-b border-slate-100 pb-3 last:border-none"
+            >
+              <Icon
+                className={item.color}
+                size={20}
+              />
 
-              <p className="text-sm text-slate-500">
-                {item.time}
-              </p>
+              <div>
+                <h3 className="font-semibold text-slate-800">
+                  {item.title}
+                </h3>
+
+                <p className="text-sm text-slate-500">
+                  {item.time}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

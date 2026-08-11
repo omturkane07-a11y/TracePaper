@@ -1,32 +1,79 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
 
-import RememberMe from "./RememberMe";
-
-export default function LoginForm() {
+export default function RegisterForm() {
   const navigate = useNavigate();
-  const location = useLocation();
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setError("");
 
-    // Any email + any password is accepted
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    const user = {
+      name,
+      email,
+      password,
+    };
+
+    localStorage.setItem("tracepaper_user", JSON.stringify(user));
     localStorage.setItem("tracepaper_auth", "true");
 
-    // Go to originally requested page,
-    // otherwise go to Dashboard
-    const from = location.state?.from?.pathname || "/dashboard";
-
-    navigate(from);
+    navigate("/dashboard");
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+
+      {/* Full Name */}
+      <div>
+        <label className="block text-sm font-semibold text-slate-700 mb-2">
+          Full Name
+        </label>
+
+        <div className="relative">
+          <User
+            size={19}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+          />
+
+          <input
+            type="text"
+            placeholder="Enter full name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="
+              w-full
+              border border-slate-200
+              rounded-xl
+              pl-11 pr-4
+              py-3.5
+              outline-none
+              bg-slate-50
+              focus:bg-white
+              focus:border-blue-500
+              focus:ring-4
+              focus:ring-blue-500/10
+              transition
+            "
+            required
+          />
+        </div>
+      </div>
 
       {/* Email */}
       <div>
@@ -78,7 +125,7 @@ export default function LoginForm() {
 
           <input
             type={showPassword ? "text" : "password"}
-            placeholder="Enter your password"
+            placeholder="Enter password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="
@@ -98,22 +145,16 @@ export default function LoginForm() {
             required
           />
 
-          {/* Eye Button */}
           <button
             type="button"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            onClick={() => setShowPassword((prev) => !prev)}
+            onClick={() => setShowPassword(!showPassword)}
             className="
               absolute
               right-4
               top-1/2
               -translate-y-1/2
-              flex
-              items-center
-              justify-center
               text-slate-400
               hover:text-blue-600
-              cursor-pointer
               transition
             "
           >
@@ -126,34 +167,80 @@ export default function LoginForm() {
         </div>
       </div>
 
-      {/* Remember Me + Forgot Password */}
-      <div className="flex items-center justify-between">
-        <RememberMe />
+      {/* Confirm Password */}
+      <div>
+        <label className="block text-sm font-semibold text-slate-700 mb-2">
+          Confirm Password
+        </label>
 
-        <button
-          type="button"
-          onClick={() => navigate("/forgot-password")}
-          className="
-            text-sm
-            text-blue-600
-            font-medium
-            hover:text-blue-700
-            hover:underline
-            transition
-          "
-        >
-          Forgot Password?
-        </button>
+        <div className="relative">
+          <Lock
+            size={19}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+          />
+
+          <input
+            type={showConfirmPassword ? "text" : "password"}
+            placeholder="Confirm password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="
+              w-full
+              border border-slate-200
+              rounded-xl
+              pl-11 pr-12
+              py-3.5
+              outline-none
+              bg-slate-50
+              focus:bg-white
+              focus:border-blue-500
+              focus:ring-4
+              focus:ring-blue-500/10
+              transition
+            "
+            required
+          />
+
+          <button
+            type="button"
+            onClick={() =>
+              setShowConfirmPassword(!showConfirmPassword)
+            }
+            className="
+              absolute
+              right-4
+              top-1/2
+              -translate-y-1/2
+              text-slate-400
+              hover:text-blue-600
+              transition
+            "
+          >
+            {showConfirmPassword ? (
+              <EyeOff size={19} />
+            ) : (
+              <Eye size={19} />
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* ================= GLOSSY 3D LOGIN BUTTON ================= */}
+      {/* Error */}
+      {error && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          {error}
+        </p>
+      )}
+
+      {/* ================= CREATE ACCOUNT BUTTON ================= */}
       <div className="flex justify-center pt-1">
+
         <button
           type="submit"
           className="
             group
             relative
-            w-[50%]
+            w-[60%]
             h-10
             overflow-hidden
             rounded-full
@@ -178,6 +265,7 @@ export default function LoginForm() {
             active:shadow-[0_2px_0_#0638a8,0_5px_12px_rgba(20,80,220,0.3)]
           "
         >
+
           {/* Glossy Highlight */}
           <span
             className="
@@ -213,10 +301,24 @@ export default function LoginForm() {
 
           {/* Button Text */}
           <span className="relative z-10 text-base">
-            LOGIN
+            CREATE ACCOUNT
           </span>
+
         </button>
+
       </div>
+
+      {/* Login Link */}
+      <p className="text-center text-sm text-slate-500 pt-1">
+        Already have an account?{" "}
+        <button
+          type="button"
+          onClick={() => navigate("/login")}
+          className="text-blue-600 font-semibold hover:text-blue-700 hover:underline transition"
+        >
+          Sign In
+        </button>
+      </p>
 
     </form>
   );

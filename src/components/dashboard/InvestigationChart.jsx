@@ -12,7 +12,7 @@ import { chartData } from "../../data/chartData";
 
 export default function InvestigationChart() {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 h-[680px]">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
 
       <div className="flex justify-between items-center mb-6">
 
@@ -28,12 +28,11 @@ export default function InvestigationChart() {
 
       </div>
 
-
-      <div className="h-[450px] mt-4">
+      <div className="h-[300px] mt-4">
 
         <ResponsiveContainer width="100%" height="100%">
 
-          <LineChart 
+          <LineChart
             data={chartData}
             margin={{
               top: 10,
@@ -48,14 +47,11 @@ export default function InvestigationChart() {
               stroke="#E2E8F0"
             />
 
-            <XAxis 
-              dataKey="month"
-            />
+            <XAxis dataKey="month" />
 
             <YAxis />
 
             <Tooltip />
-
 
             <Line
               type="monotone"
