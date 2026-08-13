@@ -12,21 +12,73 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Any email + any password is accepted
-    localStorage.setItem("tracepaper_auth", "true");
+    setError("");
+    setLoading(true);
 
-    // Go to originally requested page,
-    // otherwise go to Dashboard
-    const from = location.state?.from?.pathname || "/dashboard";
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            password,
+          }),
+        }
+      );
 
-    navigate(from);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed.");
+      }
+
+      // Save authentication information
+      localStorage.setItem("tracepaper_auth", "true");
+      localStorage.setItem(
+        "tracepaper_token",
+        data.token
+      );
+      localStorage.setItem(
+        "tracepaper_user",
+        JSON.stringify(data.user)
+      );
+
+      // Navigate to originally requested page
+      const from =
+        location.state?.from?.pathname || "/dashboard";
+
+      navigate(from, { replace: true });
+    } catch (error) {
+      console.error("Login error:", error);
+
+      setError(
+        error.message ||
+          "Unable to connect to the server."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+
+      {/* Error Message */}
+      {error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          {error}
+        </div>
+      )}
 
       {/* Email */}
       <div>
@@ -60,6 +112,7 @@ export default function LoginForm() {
               transition
             "
             required
+            disabled={loading}
           />
         </div>
       </div>
@@ -96,13 +149,20 @@ export default function LoginForm() {
               transition
             "
             required
+            disabled={loading}
           />
 
           {/* Eye Button */}
           <button
             type="button"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            onClick={() => setShowPassword((prev) => !prev)}
+            aria-label={
+              showPassword
+                ? "Hide password"
+                : "Show password"
+            }
+            onClick={() =>
+              setShowPassword((prev) => !prev)
+            }
             className="
               absolute
               right-4
@@ -116,6 +176,7 @@ export default function LoginForm() {
               cursor-pointer
               transition
             "
+            disabled={loading}
           >
             {showPassword ? (
               <EyeOff size={19} />
@@ -141,15 +202,17 @@ export default function LoginForm() {
             hover:underline
             transition
           "
+          disabled={loading}
         >
           Forgot Password?
         </button>
       </div>
 
-      {/* ================= GLOSSY 3D LOGIN BUTTON ================= */}
+      {/* LOGIN BUTTON */}
       <div className="flex justify-center pt-1">
         <button
           type="submit"
+          disabled={loading}
           className="
             group
             relative
@@ -176,6 +239,8 @@ export default function LoginForm() {
             hover:shadow-[0_8px_0_#0638a8,0_15px_25px_rgba(20,80,220,0.4)]
             active:translate-y-[5px]
             active:shadow-[0_2px_0_#0638a8,0_5px_12px_rgba(20,80,220,0.3)]
+            disabled:opacity-60
+            disabled:cursor-not-allowed
           "
         >
           {/* Glossy Highlight */}
@@ -213,7 +278,7 @@ export default function LoginForm() {
 
           {/* Button Text */}
           <span className="relative z-10 text-base">
-            LOGIN
+            {loading ? "LOGGING IN..." : "LOGIN"}
           </span>
         </button>
       </div>

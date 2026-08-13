@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
 
 export default function RegisterForm() {
@@ -14,26 +15,73 @@ export default function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
+    // Confirm password check
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
 
-    const user = {
-      name,
-      email,
-      password,
-    };
+    // Password length check
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
 
-    localStorage.setItem("tracepaper_user", JSON.stringify(user));
-    localStorage.setItem("tracepaper_auth", "true");
+    try {
+      setLoading(true);
 
-    navigate("/dashboard");
+      // Send registration request to backend
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        {
+          full_name: name,
+          email: email,
+          password: password,
+        }
+      );
+
+      // Registration successful
+      if (response.data.status === "success") {
+        // Save JWT token
+        localStorage.setItem(
+          "tracepaper_token",
+          response.data.token
+        );
+
+        // Save user information
+        localStorage.setItem(
+          "tracepaper_user",
+          JSON.stringify(response.data.user)
+        );
+
+        // Keep authentication status
+        localStorage.setItem("tracepaper_auth", "true");
+
+        // Go to dashboard
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      console.error("Registration error:", err);
+
+      if (err.response) {
+        setError(
+          err.response.data.message ||
+            "Registration failed. Please try again."
+        );
+      } else {
+        setError(
+          "Unable to connect to TracePaper server. Make sure backend is running."
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -232,11 +280,11 @@ export default function RegisterForm() {
         </p>
       )}
 
-      {/* ================= CREATE ACCOUNT BUTTON ================= */}
+      {/* Create Account Button */}
       <div className="flex justify-center pt-1">
-
         <button
           type="submit"
+          disabled={loading}
           className="
             group
             relative
@@ -260,13 +308,10 @@ export default function RegisterForm() {
             hover:via-[#2872ff]
             hover:to-[#0b50e5]
             hover:-translate-y-0.5
-            hover:shadow-[0_8px_0_#0638a8,0_15px_25px_rgba(20,80,220,0.4)]
-            active:translate-y-[5px]
-            active:shadow-[0_2px_0_#0638a8,0_5px_12px_rgba(20,80,220,0.3)]
+            disabled:opacity-60
+            disabled:cursor-not-allowed
           "
         >
-
-          {/* Glossy Highlight */}
           <span
             className="
               absolute
@@ -282,7 +327,6 @@ export default function RegisterForm() {
             "
           />
 
-          {/* Shine Animation */}
           <span
             className="
               absolute
@@ -299,13 +343,10 @@ export default function RegisterForm() {
             "
           />
 
-          {/* Button Text */}
           <span className="relative z-10 text-base">
-            CREATE ACCOUNT
+            {loading ? "CREATING..." : "CREATE ACCOUNT"}
           </span>
-
         </button>
-
       </div>
 
       {/* Login Link */}
