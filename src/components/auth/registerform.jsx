@@ -48,23 +48,15 @@ export default function RegisterForm() {
 
       // Registration successful
       if (response.data.status === "success") {
-        // Save JWT token
-        localStorage.setItem(
-          "tracepaper_token",
-          response.data.token
-        );
+        /*
+          IMPORTANT:
+          Do NOT save JWT/token here.
 
-        // Save user information
-        localStorage.setItem(
-          "tracepaper_user",
-          JSON.stringify(response.data.user)
-        );
+          Registration only creates the account.
+          User must login separately.
+        */
 
-        // Keep authentication status
-        localStorage.setItem("tracepaper_auth", "true");
-
-        // Go to dashboard
-        navigate("/dashboard");
+        navigate("/login");
       }
     } catch (err) {
       console.error("Registration error:", err);

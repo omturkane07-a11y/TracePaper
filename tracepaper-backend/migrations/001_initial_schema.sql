@@ -89,6 +89,9 @@ CREATE TABLE IF NOT EXISTS exams (
 
     total_marks INTEGER,
 
+    -- Exam Center
+    exam_center_id INTEGER,
+
     created_by INTEGER,
 
     status VARCHAR(50) NOT NULL DEFAULT 'scheduled',
@@ -110,6 +113,11 @@ CREATE TABLE IF NOT EXISTS exams (
     CONSTRAINT exams_created_by_fk
         FOREIGN KEY (created_by)
         REFERENCES users(id)
+        ON DELETE SET NULL,
+
+    CONSTRAINT exams_center_fk
+        FOREIGN KEY (exam_center_id)
+        REFERENCES exam_centers(id)
         ON DELETE SET NULL
 );
 
@@ -382,6 +390,9 @@ ON audit_logs(user_id);
 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created
 ON audit_logs(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_exams_center
+ON exams(exam_center_id);
 
 
 -- ============================================

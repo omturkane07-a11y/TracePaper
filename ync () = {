@@ -1,0 +1,1763 @@
+[1mdiff --git a/tracepaper-backend/.gitignore b/tracepaper-backend/.gitignore[m
+[1mindex ea7f5c7..6fc1082 100644[m
+[1m--- a/tracepaper-backend/.gitignore[m
+[1m+++ b/tracepaper-backend/.gitignore[m
+[36m@@ -1,2 +1,2 @@[m
+[31m-node_modules/ [m
+[31m-.env [m
+[32m+[m[32mnode_modules/[m[41m [m
+[32m+[m[32m.env[m[41m [m
+[1mdiff --git a/tracepaper-backend/db.js b/tracepaper-backend/db.js[m
+[1mindex 0bcbb20..679d914 100644[m
+[1m--- a/tracepaper-backend/db.js[m
+[1m+++ b/tracepaper-backend/db.js[m
+[36m@@ -1,19 +1,55 @@[m
+[31m-const { Pool } = require("pg");[m
+[31m-require("dotenv").config();[m
+[31m-[m
+[31m-const pool = new Pool({[m
+[31m-  connectionString: process.env.DATABASE_URL,[m
+[31m-  ssl: {[m
+[31m-    rejectUnauthorized: false,[m
+[31m-  },[m
+[31m-});[m
+[31m-[m
+[31m-pool.on("connect", () => {[m
+[31m-  console.log("Connected to Neon PostgreSQL");[m
+[31m-});[m
+[31m-[m
+[31m-pool.on("error", (err) => {[m
+[31m-  console.error("Unexpected PostgreSQL error:", err.message);[m
+[31m-});[m
+[31m-[m
+[32m+[m[32mconst { Pool } = require("pg");[m[41m[m
+[32m+[m[32mrequire("dotenv").config();[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mconst pool = new Pool({[m[41m[m
+[32m+[m[32m  connectionString: process.env.DATABASE_URL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m  ssl: {[m[41m[m
+[32m+[m[32m    rejectUnauthorized: false,[m[41m[m
+[32m+[m[32m  },[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m  // Keep database connection alive[m[41m[m
+[32m+[m[32m  max: 10,[m[41m[m
+[32m+[m[32m  idleTimeoutMillis: 30000,[m[41m[m
+[32m+[m[32m  connectionTimeoutMillis: 10000,[m[41m[m
+[32m+[m[32m});[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// DATABASE CONNECT[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mpool.on("connect", () => {[m[41m[m
+[32m+[m[32m  console.log("Connected to Neon PostgreSQL");[m[41m[m
+[32m+[m[32m});[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// DATABASE ERROR[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mpool.on("error", (err) => {[m[41m[m
+[32m+[m[32m  console.error("Unexpected PostgreSQL error:", err.message);[m[41m[m
+[32m+[m[32m});[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// TEST DATABASE CONNECTION[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mconst testDatabaseConnection = async () => {[m[41m[m
+[32m+[m[32m  try {[m[41m[m
+[32m+[m[32m    const result = await pool.query("SELECT NOW()");[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    console.log([m[41m[m
+[32m+[m[32m      "Neon PostgreSQL connection successful:",[m[41m[m
+[32m+[m[32m      result.rows[0].now[m[41m[m
+[32m+[m[32m    );[m[41m[m
+[32m+[m[32m  } catch (error) {[m[41m[m
+[32m+[m[32m    console.error([m[41m[m
+[32m+[m[32m      "Neon PostgreSQL connection failed:",[m[41m[m
+[32m+[m[32m      error.message[m[41m[m
+[32m+[m[32m    );[m[41m[m
+[32m+[m[32m  }[m[41m[m
+[32m+[m[32m};[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mtestDatabaseConnection();[m[41m[m
+[32m+[m[41m[m
+ module.exports = pool;[m
+\ No newline at end of file[m
+[1mdiff --git a/tracepaper-backend/migrations/001_initial_schema.sql b/tracepaper-backend/migrations/001_initial_schema.sql[m
+[1mindex 5408656..b73c393 100644[m
+[1m--- a/tracepaper-backend/migrations/001_initial_schema.sql[m
+[1m+++ b/tracepaper-backend/migrations/001_initial_schema.sql[m
+[36m@@ -1,391 +1,402 @@[m
+[31m--- ============================================[m
+[31m--- TRACEPAPER INITIAL DATABASE SCHEMA[m
+[31m--- PostgreSQL[m
+[31m--- ============================================[m
+[31m-[m
+[31m--- ============================================[m
+[31m--- USERS[m
+[31m--- ============================================[m
+[31m-[m
+[31m-CREATE TABLE IF NOT EXISTS users ([m
+[31m-    id SERIAL PRIMARY KEY,[m
+[31m-[m
+[31m-    full_name VARCHAR(150) NOT NULL,[m
+[31m-[m
+[31m-    email VARCHAR(255) UNIQUE NOT NULL,[m
+[31m-[m
+[31m-    password_hash TEXT NOT NULL,[m
+[31m-[m
+[31m-    role VARCHAR(50) NOT NULL DEFAULT 'investigator',[m
+[31m-[m
+[31m-    phone VARCHAR(20),[m
+[31m-[m
+[31m-    department VARCHAR(150),[m
+[31m-[m
+[31m-    is_active BOOLEAN NOT NULL DEFAULT TRUE,[m
+[31m-[m
+[31m-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    CONSTRAINT users_role_check[m
+[31m-        CHECK ([m
+[31m-            role IN ([m
+[31m-                'admin',[m
+[31m-                'investigator',[m
+[31m-                'exam_board',[m
+[31m-                'exam_center',[m
+[31m-                'viewer'[m
+[31m-            )[m
+[31m-        )[m
+[31m-);[m
+[31m-[m
+[31m-[m
+[31m--- ============================================[m
+[31m--- EXAM CENTERS[m
+[31m--- ============================================[m
+[31m-[m
+[31m-CREATE TABLE IF NOT EXISTS exam_centers ([m
+[31m-    id SERIAL PRIMARY KEY,[m
+[31m-[m
+[31m-    center_code VARCHAR(50) UNIQUE NOT NULL,[m
+[31m-[m
+[31m-    center_name VARCHAR(200) NOT NULL,[m
+[31m-[m
+[31m-    address TEXT,[m
+[31m-[m
+[31m-    city VARCHAR(100),[m
+[31m-[m
+[31m-    state VARCHAR(100),[m
+[31m-[m
+[31m-    contact_person VARCHAR(150),[m
+[31m-[m
+[31m-    contact_phone VARCHAR(20),[m
+[31m-[m
+[31m-    is_active BOOLEAN NOT NULL DEFAULT TRUE,[m
+[31m-[m
+[31m-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP[m
+[31m-);[m
+[31m-[m
+[31m-[m
+[31m--- ============================================[m
+[31m--- EXAMS[m
+[31m--- ============================================[m
+[31m-[m
+[31m-CREATE TABLE IF NOT EXISTS exams ([m
+[31m-    id SERIAL PRIMARY KEY,[m
+[31m-[m
+[31m-    exam_code VARCHAR(100) UNIQUE NOT NULL,[m
+[31m-[m
+[31m-    exam_name VARCHAR(255) NOT NULL,[m
+[31m-[m
+[31m-    subject VARCHAR(150),[m
+[31m-[m
+[31m-    exam_date DATE,[m
+[31m-[m
+[31m-    exam_time TIME,[m
+[31m-[m
+[31m-    duration_minutes INTEGER,[m
+[31m-[m
+[31m-    total_marks INTEGER,[m
+[31m-[m
+[31m-    created_by INTEGER,[m
+[31m-[m
+[31m-    status VARCHAR(50) NOT NULL DEFAULT 'scheduled',[m
+[31m-[m
+[31m-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    CONSTRAINT exams_status_check[m
+[31m-        CHECK ([m
+[31m-            status IN ([m
+[31m-                'draft',[m
+[31m-                'scheduled',[m
+[31m-                'completed',[m
+[31m-                'cancelled'[m
+[31m-            )[m
+[31m-        ),[m
+[31m-[m
+[31m-    CONSTRAINT exams_created_by_fk[m
+[31m-        FOREIGN KEY (created_by)[m
+[31m-        REFERENCES users(id)[m
+[31m-        ON DELETE SET NULL[m
+[31m-);[m
+[31m-[m
+[31m-[m
+[31m--- ============================================[m
+[31m--- QUESTION PAPERS[m
+[31m--- ============================================[m
+[31m-[m
+[31m-CREATE TABLE IF NOT EXISTS question_papers ([m
+[31m-    id SERIAL PRIMARY KEY,[m
+[31m-[m
+[31m-    paper_code VARCHAR(100) UNIQUE NOT NULL,[m
+[31m-[m
+[31m-    exam_id INTEGER NOT NULL,[m
+[31m-[m
+[31m-    paper_title VARCHAR(255) NOT NULL,[m
+[31m-[m
+[31m-    file_name VARCHAR(255),[m
+[31m-[m
+[31m-    file_path TEXT,[m
+[31m-[m
+[31m-    file_hash VARCHAR(255),[m
+[31m-[m
+[31m-    fingerprint VARCHAR(255) UNIQUE,[m
+[31m-[m
+[31m-    version INTEGER NOT NULL DEFAULT 1,[m
+[31m-[m
+[31m-    uploaded_by INTEGER,[m
+[31m-[m
+[31m-    status VARCHAR(50) NOT NULL DEFAULT 'active',[m
+[31m-[m
+[31m-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    CONSTRAINT question_papers_exam_fk[m
+[31m-        FOREIGN KEY (exam_id)[m
+[31m-        REFERENCES exams(id)[m
+[31m-        ON DELETE CASCADE,[m
+[31m-[m
+[31m-    CONSTRAINT question_papers_uploaded_by_fk[m
+[31m-        FOREIGN KEY (uploaded_by)[m
+[31m-        REFERENCES users(id)[m
+[31m-        ON DELETE SET NULL,[m
+[31m-[m
+[31m-    CONSTRAINT question_papers_status_check[m
+[31m-        CHECK ([m
+[31m-            status IN ([m
+[31m-                'active',[m
+[31m-                'revoked',[m
+[31m-                'leaked',[m
+[31m-                'archived'[m
+[31m-            )[m
+[31m-        )[m
+[31m-);[m
+[31m-[m
+[31m-[m
+[31m--- ============================================[m
+[31m--- PAPER FINGERPRINTS[m
+[31m--- ============================================[m
+[31m-[m
+[31m-CREATE TABLE IF NOT EXISTS paper_fingerprints ([m
+[31m-    id SERIAL PRIMARY KEY,[m
+[31m-[m
+[31m-    question_paper_id INTEGER NOT NULL,[m
+[31m-[m
+[31m-    fingerprint_hash VARCHAR(255) UNIQUE NOT NULL,[m
+[31m-[m
+[31m-    watermark_data TEXT,[m
+[31m-[m
+[31m-    generated_for VARCHAR(150),[m
+[31m-[m
+[31m-    generated_by INTEGER,[m
+[31m-[m
+[31m-    verification_count INTEGER NOT NULL DEFAULT 0,[m
+[31m-[m
+[31m-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    CONSTRAINT paper_fingerprints_paper_fk[m
+[31m-        FOREIGN KEY (question_paper_id)[m
+[31m-        REFERENCES question_papers(id)[m
+[31m-        ON DELETE CASCADE,[m
+[31m-[m
+[31m-    CONSTRAINT paper_fingerprints_user_fk[m
+[31m-        FOREIGN KEY (generated_by)[m
+[31m-        REFERENCES users(id)[m
+[31m-        ON DELETE SET NULL[m
+[31m-);[m
+[31m-[m
+[31m-[m
+[31m--- ============================================[m
+[31m--- INVESTIGATIONS[m
+[31m--- ============================================[m
+[31m-[m
+[31m-CREATE TABLE IF NOT EXISTS investigations ([m
+[31m-    id SERIAL PRIMARY KEY,[m
+[31m-[m
+[31m-    investigation_code VARCHAR(100) UNIQUE NOT NULL,[m
+[31m-[m
+[31m-    question_paper_id INTEGER,[m
+[31m-[m
+[31m-    investigator_id INTEGER,[m
+[31m-[m
+[31m-    title VARCHAR(255) NOT NULL,[m
+[31m-[m
+[31m-    description TEXT,[m
+[31m-[m
+[31m-    priority VARCHAR(30) NOT NULL DEFAULT 'medium',[m
+[31m-[m
+[31m-    status VARCHAR(50) NOT NULL DEFAULT 'open',[m
+[31m-[m
+[31m-    started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    closed_at TIMESTAMP,[m
+[31m-[m
+[31m-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    CONSTRAINT investigations_paper_fk[m
+[31m-        FOREIGN KEY (question_paper_id)[m
+[31m-        REFERENCES question_papers(id)[m
+[31m-        ON DELETE SET NULL,[m
+[31m-[m
+[31m-    CONSTRAINT investigations_investigator_fk[m
+[31m-        FOREIGN KEY (investigator_id)[m
+[31m-        REFERENCES users(id)[m
+[31m-        ON DELETE SET NULL,[m
+[31m-[m
+[31m-    CONSTRAINT investigations_priority_check[m
+[31m-        CHECK ([m
+[31m-            priority IN ([m
+[31m-                'low',[m
+[31m-                'medium',[m
+[31m-                'high',[m
+[31m-                'critical'[m
+[31m-            )[m
+[31m-        ),[m
+[31m-[m
+[31m-    CONSTRAINT investigations_status_check[m
+[31m-        CHECK ([m
+[31m-            status IN ([m
+[31m-                'open',[m
+[31m-                'investigating',[m
+[31m-                'resolved',[m
+[31m-                'closed'[m
+[31m-            )[m
+[31m-        )[m
+[31m-);[m
+[31m-[m
+[31m-[m
+[31m--- ============================================[m
+[31m--- LEAK CASES[m
+[31m--- ============================================[m
+[31m-[m
+[31m-CREATE TABLE IF NOT EXISTS leak_cases ([m
+[31m-    id SERIAL PRIMARY KEY,[m
+[31m-[m
+[31m-    case_code VARCHAR(100) UNIQUE NOT NULL,[m
+[31m-[m
+[31m-    question_paper_id INTEGER,[m
+[31m-[m
+[31m-    investigation_id INTEGER,[m
+[31m-[m
+[31m-    detected_fingerprint VARCHAR(255),[m
+[31m-[m
+[31m-    source VARCHAR(255),[m
+[31m-[m
+[31m-    detected_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    severity VARCHAR(30) NOT NULL DEFAULT 'medium',[m
+[31m-[m
+[31m-    status VARCHAR(50) NOT NULL DEFAULT 'detected',[m
+[31m-[m
+[31m-    evidence TEXT,[m
+[31m-[m
+[31m-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    CONSTRAINT leak_cases_paper_fk[m
+[31m-        FOREIGN KEY (question_paper_id)[m
+[31m-        REFERENCES question_papers(id)[m
+[31m-        ON DELETE SET NULL,[m
+[31m-[m
+[31m-    CONSTRAINT leak_cases_investigation_fk[m
+[31m-        FOREIGN KEY (investigation_id)[m
+[31m-        REFERENCES investigations(id)[m
+[31m-        ON DELETE SET NULL,[m
+[31m-[m
+[31m-    CONSTRAINT leak_cases_severity_check[m
+[31m-        CHECK ([m
+[31m-            severity IN ([m
+[31m-                'low',[m
+[31m-                'medium',[m
+[31m-                'high',[m
+[31m-                'critical'[m
+[31m-            )[m
+[31m-        ),[m
+[31m-[m
+[31m-    CONSTRAINT leak_cases_status_check[m
+[31m-        CHECK ([m
+[31m-            status IN ([m
+[31m-                'detected',[m
+[31m-                'under_investigation',[m
+[31m-                'confirmed',[m
+[31m-                'resolved',[m
+[31m-                'false_positive'[m
+[31m-            )[m
+[31m-        )[m
+[31m-);[m
+[31m-[m
+[31m-[m
+[31m--- ============================================[m
+[31m--- AUDIT LOGS[m
+[31m--- ============================================[m
+[31m-[m
+[31m-CREATE TABLE IF NOT EXISTS audit_logs ([m
+[31m-    id BIGSERIAL PRIMARY KEY,[m
+[31m-[m
+[31m-    user_id INTEGER,[m
+[31m-[m
+[31m-    action VARCHAR(100) NOT NULL,[m
+[31m-[m
+[31m-    entity_type VARCHAR(100),[m
+[31m-[m
+[31m-    entity_id INTEGER,[m
+[31m-[m
+[31m-    description TEXT,[m
+[31m-[m
+[31m-    ip_address VARCHAR(100),[m
+[31m-[m
+[31m-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m
+[31m-[m
+[31m-    CONSTRAINT audit_logs_user_fk[m
+[31m-        FOREIGN KEY (user_id)[m
+[31m-        REFERENCES users(id)[m
+[31m-        ON DELETE SET NULL[m
+[31m-);[m
+[31m-[m
+[31m-[m
+[31m--- ============================================[m
+[31m--- INDEXES[m
+[31m--- ============================================[m
+[31m-[m
+[31m-CREATE INDEX IF NOT EXISTS idx_users_email[m
+[31m-ON users(email);[m
+[31m-[m
+[31m-CREATE INDEX IF NOT EXISTS idx_question_papers_exam[m
+[31m-ON question_papers(exam_id);[m
+[31m-[m
+[31m-CREATE INDEX IF NOT EXISTS idx_question_papers_fingerprint[m
+[31m-ON question_papers(fingerprint);[m
+[31m-[m
+[31m-CREATE INDEX IF NOT EXISTS idx_paper_fingerprints_hash[m
+[31m-ON paper_fingerprints(fingerprint_hash);[m
+[31m-[m
+[31m-CREATE INDEX IF NOT EXISTS idx_investigations_status[m
+[31m-ON investigations(status);[m
+[31m-[m
+[31m-CREATE INDEX IF NOT EXISTS idx_investigations_investigator[m
+[31m-ON investigations(investigator_id);[m
+[31m-[m
+[31m-CREATE INDEX IF NOT EXISTS idx_leak_cases_status[m
+[31m-ON leak_cases(status);[m
+[31m-[m
+[31m-CREATE INDEX IF NOT EXISTS idx_leak_cases_severity[m
+[31m-ON leak_cases(severity);[m
+[31m-[m
+[31m-CREATE INDEX IF NOT EXISTS idx_audit_logs_user[m
+[31m-ON audit_logs(user_id);[m
+[31m-[m
+[31m-CREATE INDEX IF NOT EXISTS idx_audit_logs_created[m
+[31m-ON audit_logs(created_at);[m
+[31m-[m
+[31m-[m
+[31m--- ============================================[m
+[31m--- MIGRATION COMPLETE[m
+[31m--- ============================================[m
+[31m-[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[32m-- TRACEPAPER INITIAL DATABASE SCHEMA[m[41m[m
+[32m+[m[32m-- PostgreSQL[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[32m-- USERS[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE TABLE IF NOT EXISTS users ([m[41m[m
+[32m+[m[32m    id SERIAL PRIMARY KEY,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    full_name VARCHAR(150) NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    email VARCHAR(255) UNIQUE NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    password_hash TEXT NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    role VARCHAR(50) NOT NULL DEFAULT 'investigator',[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    phone VARCHAR(20),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    department VARCHAR(150),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    is_active BOOLEAN NOT NULL DEFAULT TRUE,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT users_role_check[m[41m[m
+[32m+[m[32m        CHECK ([m[41m[m
+[32m+[m[32m            role IN ([m[41m[m
+[32m+[m[32m                'admin',[m[41m[m
+[32m+[m[32m                'investigator',[m[41m[m
+[32m+[m[32m                'exam_board',[m[41m[m
+[32m+[m[32m                'exam_center',[m[41m[m
+[32m+[m[32m                'viewer'[m[41m[m
+[32m+[m[32m            )[m[41m[m
+[32m+[m[32m        )[m[41m[m
+[32m+[m[32m);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[32m-- EXAM CENTERS[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE TABLE IF NOT EXISTS exam_centers ([m[41m[m
+[32m+[m[32m    id SERIAL PRIMARY KEY,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    center_code VARCHAR(50) UNIQUE NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    center_name VARCHAR(200) NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    address TEXT,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    city VARCHAR(100),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    state VARCHAR(100),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    contact_person VARCHAR(150),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    contact_phone VARCHAR(20),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    is_active BOOLEAN NOT NULL DEFAULT TRUE,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP[m[41m[m
+[32m+[m[32m);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[32m-- EXAMS[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE TABLE IF NOT EXISTS exams ([m[41m[m
+[32m+[m[32m    id SERIAL PRIMARY KEY,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    exam_code VARCHAR(100) UNIQUE NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    exam_name VARCHAR(255) NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    subject VARCHAR(150),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    exam_date DATE,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    exam_time TIME,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    duration_minutes INTEGER,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    total_marks INTEGER,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    -- Exam Center[m[41m[m
+[32m+[m[32m    exam_center_id INTEGER,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    created_by INTEGER,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    status VARCHAR(50) NOT NULL DEFAULT 'scheduled',[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT exams_status_check[m[41m[m
+[32m+[m[32m        CHECK ([m[41m[m
+[32m+[m[32m            status IN ([m[41m[m
+[32m+[m[32m                'draft',[m[41m[m
+[32m+[m[32m                'scheduled',[m[41m[m
+[32m+[m[32m                'completed',[m[41m[m
+[32m+[m[32m                'cancelled'[m[41m[m
+[32m+[m[32m            )[m[41m[m
+[32m+[m[32m        ),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT exams_created_by_fk[m[41m[m
+[32m+[m[32m        FOREIGN KEY (created_by)[m[41m[m
+[32m+[m[32m        REFERENCES users(id)[m[41m[m
+[32m+[m[32m        ON DELETE SET NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT exams_center_fk[m[41m[m
+[32m+[m[32m        FOREIGN KEY (exam_center_id)[m[41m[m
+[32m+[m[32m        REFERENCES exam_centers(id)[m[41m[m
+[32m+[m[32m        ON DELETE SET NULL[m[41m[m
+[32m+[m[32m);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[32m-- QUESTION PAPERS[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE TABLE IF NOT EXISTS question_papers ([m[41m[m
+[32m+[m[32m    id SERIAL PRIMARY KEY,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    paper_code VARCHAR(100) UNIQUE NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    exam_id INTEGER NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    paper_title VARCHAR(255) NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    file_name VARCHAR(255),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    file_path TEXT,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    file_hash VARCHAR(255),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    fingerprint VARCHAR(255) UNIQUE,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    version INTEGER NOT NULL DEFAULT 1,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    uploaded_by INTEGER,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    status VARCHAR(50) NOT NULL DEFAULT 'active',[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT question_papers_exam_fk[m[41m[m
+[32m+[m[32m        FOREIGN KEY (exam_id)[m[41m[m
+[32m+[m[32m        REFERENCES exams(id)[m[41m[m
+[32m+[m[32m        ON DELETE CASCADE,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT question_papers_uploaded_by_fk[m[41m[m
+[32m+[m[32m        FOREIGN KEY (uploaded_by)[m[41m[m
+[32m+[m[32m        REFERENCES users(id)[m[41m[m
+[32m+[m[32m        ON DELETE SET NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT question_papers_status_check[m[41m[m
+[32m+[m[32m        CHECK ([m[41m[m
+[32m+[m[32m            status IN ([m[41m[m
+[32m+[m[32m                'active',[m[41m[m
+[32m+[m[32m                'revoked',[m[41m[m
+[32m+[m[32m                'leaked',[m[41m[m
+[32m+[m[32m                'archived'[m[41m[m
+[32m+[m[32m            )[m[41m[m
+[32m+[m[32m        )[m[41m[m
+[32m+[m[32m);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[32m-- PAPER FINGERPRINTS[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE TABLE IF NOT EXISTS paper_fingerprints ([m[41m[m
+[32m+[m[32m    id SERIAL PRIMARY KEY,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    question_paper_id INTEGER NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    fingerprint_hash VARCHAR(255) UNIQUE NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    watermark_data TEXT,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    generated_for VARCHAR(150),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    generated_by INTEGER,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    verification_count INTEGER NOT NULL DEFAULT 0,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT paper_fingerprints_paper_fk[m[41m[m
+[32m+[m[32m        FOREIGN KEY (question_paper_id)[m[41m[m
+[32m+[m[32m        REFERENCES question_papers(id)[m[41m[m
+[32m+[m[32m        ON DELETE CASCADE,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT paper_fingerprints_user_fk[m[41m[m
+[32m+[m[32m        FOREIGN KEY (generated_by)[m[41m[m
+[32m+[m[32m        REFERENCES users(id)[m[41m[m
+[32m+[m[32m        ON DELETE SET NULL[m[41m[m
+[32m+[m[32m);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[32m-- INVESTIGATIONS[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE TABLE IF NOT EXISTS investigations ([m[41m[m
+[32m+[m[32m    id SERIAL PRIMARY KEY,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    investigation_code VARCHAR(100) UNIQUE NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    question_paper_id INTEGER,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    investigator_id INTEGER,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    title VARCHAR(255) NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    description TEXT,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    priority VARCHAR(30) NOT NULL DEFAULT 'medium',[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    status VARCHAR(50) NOT NULL DEFAULT 'open',[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    started_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    closed_at TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT investigations_paper_fk[m[41m[m
+[32m+[m[32m        FOREIGN KEY (question_paper_id)[m[41m[m
+[32m+[m[32m        REFERENCES question_papers(id)[m[41m[m
+[32m+[m[32m        ON DELETE SET NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT investigations_investigator_fk[m[41m[m
+[32m+[m[32m        FOREIGN KEY (investigator_id)[m[41m[m
+[32m+[m[32m        REFERENCES users(id)[m[41m[m
+[32m+[m[32m        ON DELETE SET NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT investigations_priority_check[m[41m[m
+[32m+[m[32m        CHECK ([m[41m[m
+[32m+[m[32m            priority IN ([m[41m[m
+[32m+[m[32m                'low',[m[41m[m
+[32m+[m[32m                'medium',[m[41m[m
+[32m+[m[32m                'high',[m[41m[m
+[32m+[m[32m                'critical'[m[41m[m
+[32m+[m[32m            )[m[41m[m
+[32m+[m[32m        ),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT investigations_status_check[m[41m[m
+[32m+[m[32m        CHECK ([m[41m[m
+[32m+[m[32m            status IN ([m[41m[m
+[32m+[m[32m                'open',[m[41m[m
+[32m+[m[32m                'investigating',[m[41m[m
+[32m+[m[32m                'resolved',[m[41m[m
+[32m+[m[32m                'closed'[m[41m[m
+[32m+[m[32m            )[m[41m[m
+[32m+[m[32m        )[m[41m[m
+[32m+[m[32m);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[32m-- LEAK CASES[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE TABLE IF NOT EXISTS leak_cases ([m[41m[m
+[32m+[m[32m    id SERIAL PRIMARY KEY,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    case_code VARCHAR(100) UNIQUE NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    question_paper_id INTEGER,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    investigation_id INTEGER,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    detected_fingerprint VARCHAR(255),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    source VARCHAR(255),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    detected_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    severity VARCHAR(30) NOT NULL DEFAULT 'medium',[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    status VARCHAR(50) NOT NULL DEFAULT 'detected',[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    evidence TEXT,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT leak_cases_paper_fk[m[41m[m
+[32m+[m[32m        FOREIGN KEY (question_paper_id)[m[41m[m
+[32m+[m[32m        REFERENCES question_papers(id)[m[41m[m
+[32m+[m[32m        ON DELETE SET NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT leak_cases_investigation_fk[m[41m[m
+[32m+[m[32m        FOREIGN KEY (investigation_id)[m[41m[m
+[32m+[m[32m        REFERENCES investigations(id)[m[41m[m
+[32m+[m[32m        ON DELETE SET NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT leak_cases_severity_check[m[41m[m
+[32m+[m[32m        CHECK ([m[41m[m
+[32m+[m[32m            severity IN ([m[41m[m
+[32m+[m[32m                'low',[m[41m[m
+[32m+[m[32m                'medium',[m[41m[m
+[32m+[m[32m                'high',[m[41m[m
+[32m+[m[32m                'critical'[m[41m[m
+[32m+[m[32m            )[m[41m[m
+[32m+[m[32m        ),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT leak_cases_status_check[m[41m[m
+[32m+[m[32m        CHECK ([m[41m[m
+[32m+[m[32m            status IN ([m[41m[m
+[32m+[m[32m                'detected',[m[41m[m
+[32m+[m[32m                'under_investigation',[m[41m[m
+[32m+[m[32m                'confirmed',[m[41m[m
+[32m+[m[32m                'resolved',[m[41m[m
+[32m+[m[32m                'false_positive'[m[41m[m
+[32m+[m[32m            )[m[41m[m
+[32m+[m[32m        )[m[41m[m
+[32m+[m[32m);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[32m-- AUDIT LOGS[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE TABLE IF NOT EXISTS audit_logs ([m[41m[m
+[32m+[m[32m    id BIGSERIAL PRIMARY KEY,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    user_id INTEGER,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    action VARCHAR(100) NOT NULL,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    entity_type VARCHAR(100),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    entity_id INTEGER,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    description TEXT,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    ip_address VARCHAR(100),[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    CONSTRAINT audit_logs_user_fk[m[41m[m
+[32m+[m[32m        FOREIGN KEY (user_id)[m[41m[m
+[32m+[m[32m        REFERENCES users(id)[m[41m[m
+[32m+[m[32m        ON DELETE SET NULL[m[41m[m
+[32m+[m[32m);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[32m-- INDEXES[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE INDEX IF NOT EXISTS idx_users_email[m[41m[m
+[32m+[m[32mON users(email);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE INDEX IF NOT EXISTS idx_question_papers_exam[m[41m[m
+[32m+[m[32mON question_papers(exam_id);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE INDEX IF NOT EXISTS idx_question_papers_fingerprint[m[41m[m
+[32m+[m[32mON question_papers(fingerprint);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE INDEX IF NOT EXISTS idx_paper_fingerprints_hash[m[41m[m
+[32m+[m[32mON paper_fingerprints(fingerprint_hash);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE INDEX IF NOT EXISTS idx_investigations_status[m[41m[m
+[32m+[m[32mON investigations(status);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE INDEX IF NOT EXISTS idx_investigations_investigator[m[41m[m
+[32m+[m[32mON investigations(investigator_id);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE INDEX IF NOT EXISTS idx_leak_cases_status[m[41m[m
+[32m+[m[32mON leak_cases(status);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE INDEX IF NOT EXISTS idx_leak_cases_severity[m[41m[m
+[32m+[m[32mON leak_cases(severity);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE INDEX IF NOT EXISTS idx_audit_logs_user[m[41m[m
+[32m+[m[32mON audit_logs(user_id);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE INDEX IF NOT EXISTS idx_audit_logs_created[m[41m[m
+[32m+[m[32mON audit_logs(created_at);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mCREATE INDEX IF NOT EXISTS idx_exams_center[m[41m[m
+[32m+[m[32mON exams(exam_center_id);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[32m-- MIGRATION COMPLETE[m[41m[m
+[32m+[m[32m-- ============================================[m[41m[m
+[32m+[m[41m[m
+ SELECT 'TracePaper database schema created successfully!' AS message;[m
+\ No newline at end of file[m
+[1mdiff --git a/tracepaper-backend/routes/auth.js b/tracepaper-backend/routes/auth.js[m
+[1mindex 1809391..58e07c7 100644[m
+[1m--- a/tracepaper-backend/routes/auth.js[m
+[1m+++ b/tracepaper-backend/routes/auth.js[m
+[36m@@ -1,220 +1,424 @@[m
+[31m-const express = require("express");[m
+[31m-const bcrypt = require("bcrypt");[m
+[31m-const jwt = require("jsonwebtoken");[m
+[31m-[m
+[31m-const pool = require("../db");[m
+[31m-[m
+[31m-const router = express.Router();[m
+[31m-[m
+[31m-// ============================================[m
+[31m-// REGISTER[m
+[31m-// ============================================[m
+[31m-[m
+[31m-router.post("/register", async (req, res) => {[m
+[31m-  try {[m
+[31m-    const {[m
+[31m-      full_name,[m
+[31m-      email,[m
+[31m-      password,[m
+[31m-      phone,[m
+[31m-      department,[m
+[31m-    } = req.body;[m
+[31m-[m
+[31m-    // Required fields[m
+[31m-    if (!full_name || !email || !password) {[m
+[31m-      return res.status(400).json({[m
+[31m-        status: "error",[m
+[31m-        message: "Full name, email and password are required.",[m
+[31m-      });[m
+[31m-    }[m
+[31m-[m
+[31m-    // Password validation[m
+[31m-    if (password.length < 6) {[m
+[31m-      return res.status(400).json({[m
+[31m-        status: "error",[m
+[31m-        message: "Password must be at least 6 characters long.",[m
+[31m-      });[m
+[31m-    }[m
+[31m-[m
+[31m-    // Normalize email[m
+[31m-    const normalizedEmail = email.trim().toLowerCase();[m
+[31m-[m
+[31m-    // Check if user already exists[m
+[31m-    const existingUser = await pool.query([m
+[31m-      "SELECT id FROM users WHERE email = $1",[m
+[31m-      [normalizedEmail][m
+[31m-    );[m
+[31m-[m
+[31m-    if (existingUser.rows.length > 0) {[m
+[31m-      return res.status(409).json({[m
+[31m-        status: "error",[m
+[31m-        message: "An account with this email already exists.",[m
+[31m-      });[m
+[31m-    }[m
+[31m-[m
+[31m-    // Hash password[m
+[31m-    const passwordHash = await bcrypt.hash(password, 10);[m
+[31m-[m
+[31m-    // Insert user[m
+[31m-    const result = await pool.query([m
+[31m-      `[m
+[31m-      INSERT INTO users[m
+[31m-        (full_name, email, password_hash, role, phone, department)[m
+[31m-      VALUES[m
+[31m-        ($1, $2, $3, $4, $5, $6)[m
+[31m-      RETURNING[m
+[31m-        id,[m
+[31m-        full_name,[m
+[31m-        email,[m
+[31m-        role,[m
+[31m-        phone,[m
+[31m-        department,[m
+[31m-        is_active,[m
+[31m-        created_at[m
+[31m-      `,[m
+[31m-      [[m
+[31m-        full_name.trim(),[m
+[31m-        normalizedEmail,[m
+[31m-        passwordHash,[m
+[31m-        "investigator",[m
+[31m-        phone || null,[m
+[31m-        department || null,[m
+[31m-      ][m
+[31m-    );[m
+[31m-[m
+[31m-    const user = result.rows[0];[m
+[31m-[m
+[31m-    // Create JWT token[m
+[31m-    const token = jwt.sign([m
+[31m-      {[m
+[31m-        id: user.id,[m
+[31m-        email: user.email,[m
+[31m-        role: user.role,[m
+[31m-      },[m
+[31m-      process.env.JWT_SECRET,[m
+[31m-      {[m
+[31m-        expiresIn: "1d",[m
+[31m-      }[m
+[31m-    );[m
+[31m-[m
+[31m-    res.status(201).json({[m
+[31m-      status: "success",[m
+[31m-      message: "User registered successfully.",[m
+[31m-      user,[m
+[31m-      token,[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error("Registration error:", error.message);[m
+[31m-[m
+[31m-    res.status(500).json({[m
+[31m-      status: "error",[m
+[31m-      message: "Registration failed.",[m
+[31m-    });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// ============================================[m
+[31m-// LOGIN[m
+[31m-// ============================================[m
+[31m-[m
+[31m-router.post("/login", async (req, res) => {[m
+[31m-  try {[m
+[31m-    const { email, password } = req.body;[m
+[31m-[m
+[31m-    // Required fields[m
+[31m-    if (!email || !password) {[m
+[31m-      return res.status(400).json({[m
+[31m-        status: "error",[m
+[31m-        message: "Email and password are required.",[m
+[31m-      });[m
+[31m-    }[m
+[31m-[m
+[31m-    // Normalize email[m
+[31m-    const normalizedEmail = email.trim().toLowerCase();[m
+[31m-[m
+[31m-    // Find user[m
+[31m-    const result = await pool.query([m
+[31m-      `[m
+[31m-      SELECT[m
+[31m-        id,[m
+[31m-        full_name,[m
+[31m-        email,[m
+[31m-        password_hash,[m
+[31m-        role,[m
+[31m-        phone,[m
+[31m-        department,[m
+[31m-        is_active[m
+[31m-      FROM users[m
+[31m-      WHERE email = $1[m
+[31m-      `,[m
+[31m-      [normalizedEmail][m
+[31m-    );[m
+[31m-[m
+[31m-    // User not found[m
+[31m-    if (result.rows.length === 0) {[m
+[31m-      return res.status(401).json({[m
+[31m-        status: "error",[m
+[31m-        message: "Invalid email or password.",[m
+[31m-      });[m
+[31m-    }[m
+[31m-[m
+[31m-    const user = result.rows[0];[m
+[31m-[m
+[31m-    // Check account status[m
+[31m-    if (user.is_active === false) {[m
+[31m-      return res.status(403).json({[m
+[31m-        status: "error",[m
+[31m-        message: "Your account is inactive.",[m
+[31m-      });[m
+[31m-    }[m
+[31m-[m
+[31m-    // Compare entered password with stored bcrypt hash[m
+[31m-    const passwordMatch = await bcrypt.compare([m
+[31m-      password,[m
+[31m-      user.password_hash[m
+[31m-    );[m
+[31m-[m
+[31m-    if (!passwordMatch) {[m
+[31m-      return res.status(401).json({[m
+[31m-        status: "error",[m
+[31m-        message: "Invalid email or password.",[m
+[31m-      });[m
+[31m-    }[m
+[31m-[m
+[31m-    // Create JWT token[m
+[31m-    const token = jwt.sign([m
+[31m-      {[m
+[31m-        id: user.id,[m
+[31m-        email: user.email,[m
+[31m-        role: user.role,[m
+[31m-      },[m
+[31m-      process.env.JWT_SECRET,[m
+[31m-      {[m
+[31m-        expiresIn: "1d",[m
+[31m-      }[m
+[31m-    );[m
+[31m-[m
+[31m-    // Remove password hash before sending user data[m
+[31m-    delete user.password_hash;[m
+[31m-[m
+[31m-    res.status(200).json({[m
+[31m-      status: "success",[m
+[31m-      message: "Login successful.",[m
+[31m-      user,[m
+[31m-      token,[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error("Login error:", error.message);[m
+[31m-[m
+[31m-    res.status(500).json({[m
+[31m-      status: "error",[m
+[31m-      message: "Login failed.",[m
+[31m-    });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// ============================================[m
+[31m-// EXPORT ROUTER[m
+[31m-// ============================================[m
+[31m-[m
+[32m+[m[32mconst express = require("express");[m[41m[m
+[32m+[m[32mconst bcrypt = require("bcrypt");[m[41m[m
+[32m+[m[32mconst jwt = require("jsonwebtoken");[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mconst pool = require("../db");[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mconst router = express.Router();[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================================[m[41m[m
+[32m+[m[32m// ALLOWED USER ROLES[m[41m[m
+[32m+[m[32m// ============================================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mconst ALLOWED_ROLES = [[m[41m[m
+[32m+[m[32m  "admin",[m[41m[m
+[32m+[m[32m  "investigator",[m[41m[m
+[32m+[m[32m  "exam_board",[m[41m[m
+[32m+[m[32m  "exam_center",[m[41m[m
+[32m+[m[32m  "viewer",[m[41m[m
+[32m+[m[32m  "creator",[m[41m[m
+[32m+[m[32m  "reviewer",[m[41m[m
+[32m+[m[32m  "approver",[m[41m[m
+[32m+[m[32m];[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================================[m[41m[m
+[32m+[m[32m// REGISTER[m[41m[m
+[32m+[m[32m// ============================================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mrouter.post("/register", async (req, res) => {[m[41m[m
+[32m+[m[32m  try {[m[41m[m
+[32m+[m[32m    const {[m[41m[m
+[32m+[m[32m      full_name,[m[41m[m
+[32m+[m[32m      email,[m[41m[m
+[32m+[m[32m      password,[m[41m[m
+[32m+[m[32m      phone,[m[41m[m
+[32m+[m[32m      department,[m[41m[m
+[32m+[m[32m      role,[m[41m[m
+[32m+[m[32m    } = req.body;[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // REQUIRED FIELDS[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    if (!full_name || !email || !password) {[m[41m[m
+[32m+[m[32m      return res.status(400).json({[m[41m[m
+[32m+[m[32m        status: "error",[m[41m[m
+[32m+[m[32m        message:[m[41m[m
+[32m+[m[32m          "Full name, email and password are required.",[m[41m[m
+[32m+[m[32m      });[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // PASSWORD VALIDATION[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    if (String(password).length < 6) {[m[41m[m
+[32m+[m[32m      return res.status(400).json({[m[41m[m
+[32m+[m[32m        status: "error",[m[41m[m
+[32m+[m[32m        message:[m[41m[m
+[32m+[m[32m          "Password must be at least 6 characters long.",[m[41m[m
+[32m+[m[32m      });[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // NORMALIZE EMAIL[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const normalizedEmail = String(email)[m[41m[m
+[32m+[m[32m      .trim()[m[41m[m
+[32m+[m[32m      .toLowerCase();[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // NORMALIZE ROLE[m[41m[m
+[32m+[m[32m    //[m[41m[m
+[32m+[m[32m    // If role is not provided:[m[41m[m
+[32m+[m[32m    // investigator will be used.[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const userRole = role[m[41m[m
+[32m+[m[32m      ? String(role).trim().toLowerCase()[m[41m[m
+[32m+[m[32m      : "investigator";[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // ROLE VALIDATION[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    if (!ALLOWED_ROLES.includes(userRole)) {[m[41m[m
+[32m+[m[32m      return res.status(400).json({[m[41m[m
+[32m+[m[32m        status: "error",[m[41m[m
+[32m+[m[32m        message:[m[41m[m
+[32m+[m[32m          "Invalid role. Allowed roles are: " +[m[41m[m
+[32m+[m[32m          ALLOWED_ROLES.join(", "),[m[41m[m
+[32m+[m[32m        allowedRoles: ALLOWED_ROLES,[m[41m[m
+[32m+[m[32m      });[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // CHECK EXISTING USER[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const existingUser = await pool.query([m[41m[m
+[32m+[m[32m      `[m[41m[m
+[32m+[m[32m      SELECT[m[41m[m
+[32m+[m[32m        id,[m[41m[m
+[32m+[m[32m        email[m[41m[m
+[32m+[m[32m      FROM users[m[41m[m
+[32m+[m[32m      WHERE email = $1[m[41m[m
+[32m+[m[32m      LIMIT 1[m[41m[m
+[32m+[m[32m      `,[m[41m[m
+[32m+[m[32m      [normalizedEmail][m[41m[m
+[32m+[m[32m    );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    if (existingUser.rows.length > 0) {[m[41m[m
+[32m+[m[32m      return res.status(409).json({[m[41m[m
+[32m+[m[32m        status: "error",[m[41m[m
+[32m+[m[32m        message:[m[41m[m
+[32m+[m[32m          "An account with this email already exists.",[m[41m[m
+[32m+[m[32m      });[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // HASH PASSWORD[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const passwordHash = await bcrypt.hash([m[41m[m
+[32m+[m[32m      String(password),[m[41m[m
+[32m+[m[32m      10[m[41m[m
+[32m+[m[32m    );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // INSERT USER[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const insertQuery = `[m[41m[m
+[32m+[m[32m      INSERT INTO users[m[41m[m
+[32m+[m[32m      ([m[41m[m
+[32m+[m[32m        full_name,[m[41m[m
+[32m+[m[32m        email,[m[41m[m
+[32m+[m[32m        password_hash,[m[41m[m
+[32m+[m[32m        role,[m[41m[m
+[32m+[m[32m        phone,[m[41m[m
+[32m+[m[32m        department[m[41m[m
+[32m+[m[32m      )[m[41m[m
+[32m+[m[32m      VALUES[m[41m[m
+[32m+[m[32m      ([m[41m[m
+[32m+[m[32m        $1,[m[41m[m
+[32m+[m[32m        $2,[m[41m[m
+[32m+[m[32m        $3,[m[41m[m
+[32m+[m[32m        $4,[m[41m[m
+[32m+[m[32m        $5,[m[41m[m
+[32m+[m[32m        $6[m[41m[m
+[32m+[m[32m      )[m[41m[m
+[32m+[m[32m      RETURNING[m[41m[m
+[32m+[m[32m        id,[m[41m[m
+[32m+[m[32m        full_name,[m[41m[m
+[32m+[m[32m        email,[m[41m[m
+[32m+[m[32m        role,[m[41m[m
+[32m+[m[32m        phone,[m[41m[m
+[32m+[m[32m        department,[m[41m[m
+[32m+[m[32m        is_active,[m[41m[m
+[32m+[m[32m        created_at[m[41m[m
+[32m+[m[32m    `;[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const result = await pool.query([m[41m[m
+[32m+[m[32m      insertQuery,[m[41m[m
+[32m+[m[32m      [[m[41m[m
+[32m+[m[32m        String(full_name).trim(),[m[41m[m
+[32m+[m[32m        normalizedEmail,[m[41m[m
+[32m+[m[32m        passwordHash,[m[41m[m
+[32m+[m[32m        userRole,[m[41m[m
+[32m+[m[32m        phone[m[41m[m
+[32m+[m[32m          ? String(phone).trim()[m[41m[m
+[32m+[m[32m          : null,[m[41m[m
+[32m+[m[32m        department[m[41m[m
+[32m+[m[32m          ? String(department).trim()[m[41m[m
+[32m+[m[32m          : null,[m[41m[m
+[32m+[m[32m      ][m[41m[m
+[32m+[m[32m    );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const user = result.rows[0];[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // CREATE JWT[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const token = jwt.sign([m[41m[m
+[32m+[m[32m      {[m[41m[m
+[32m+[m[32m        id: user.id,[m[41m[m
+[32m+[m[32m        email: user.email,[m[41m[m
+[32m+[m[32m        role: user.role,[m[41m[m
+[32m+[m[32m      },[m[41m[m
+[32m+[m[32m      process.env.JWT_SECRET,[m[41m[m
+[32m+[m[32m      {[m[41m[m
+[32m+[m[32m        expiresIn: "1d",[m[41m[m
+[32m+[m[32m      }[m[41m[m
+[32m+[m[32m    );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // RESPONSE[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    return res.status(201).json({[m[41m[m
+[32m+[m[32m      status: "success",[m[41m[m
+[32m+[m[32m      message:[m[41m[m
+[32m+[m[32m        "User registered successfully.",[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m      user,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m      token,[m[41m[m
+[32m+[m[32m    });[m[41m[m
+[32m+[m[32m  } catch (error) {[m[41m[m
+[32m+[m[32m    console.error([m[41m[m
+[32m+[m[32m      "REGISTRATION ERROR:",[m[41m[m
+[32m+[m[32m      error[m[41m[m
+[32m+[m[32m    );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    return res.status(500).json({[m[41m[m
+[32m+[m[32m      status: "error",[m[41m[m
+[32m+[m[32m      message:[m[41m[m
+[32m+[m[32m        "Registration failed.",[m[41m[m
+[32m+[m[32m      detail: error.message,[m[41m[m
+[32m+[m[32m    });[m[41m[m
+[32m+[m[32m  }[m[41m[m
+[32m+[m[32m});[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================================[m[41m[m
+[32m+[m[32m// LOGIN[m[41m[m
+[32m+[m[32m// ============================================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mrouter.post("/login", async (req, res) => {[m[41m[m
+[32m+[m[32m  try {[m[41m[m
+[32m+[m[32m    const {[m[41m[m
+[32m+[m[32m      email,[m[41m[m
+[32m+[m[32m      password,[m[41m[m
+[32m+[m[32m    } = req.body;[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // REQUIRED FIELDS[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    if (!email || !password) {[m[41m[m
+[32m+[m[32m      return res.status(400).json({[m[41m[m
+[32m+[m[32m        status: "error",[m[41m[m
+[32m+[m[32m        message:[m[41m[m
+[32m+[m[32m          "Email and password are required.",[m[41m[m
+[32m+[m[32m      });[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // NORMALIZE EMAIL[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const normalizedEmail = String(email)[m[41m[m
+[32m+[m[32m      .trim()[m[41m[m
+[32m+[m[32m      .toLowerCase();[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // GET USER[m[41m[m
+[32m+[m[32m    //[m[41m[m
+[32m+[m[32m    // IMPORTANT:[m[41m[m
+[32m+[m[32m    // role is fetched directly from database.[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const loginQuery = `[m[41m[m
+[32m+[m[32m      SELECT[m[41m[m
+[32m+[m[32m        id,[m[41m[m
+[32m+[m[32m        full_name,[m[41m[m
+[32m+[m[32m        email,[m[41m[m
+[32m+[m[32m        password_hash,[m[41m[m
+[32m+[m[32m        role,[m[41m[m
+[32m+[m[32m        phone,[m[41m[m
+[32m+[m[32m        department,[m[41m[m
+[32m+[m[32m        is_active,[m[41m[m
+[32m+[m[32m        created_at[m[41m[m
+[32m+[m[32m      FROM users[m[41m[m
+[32m+[m[32m      WHERE email = $1[m[41m[m
+[32m+[m[32m      LIMIT 1[m[41m[m
+[32m+[m[32m    `;[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const result = await pool.query([m[41m[m
+[32m+[m[32m      loginQuery,[m[41m[m
+[32m+[m[32m      [normalizedEmail][m[41m[m
+[32m+[m[32m    );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // USER NOT FOUND[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    if (result.rows.length === 0) {[m[41m[m
+[32m+[m[32m      return res.status(401).json({[m[41m[m
+[32m+[m[32m        status: "error",[m[41m[m
+[32m+[m[32m        message:[m[41m[m
+[32m+[m[32m          "Invalid email or password.",[m[41m[m
+[32m+[m[32m      });[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const user = result.rows[0];[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // ACCOUNT STATUS[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    if (user.is_active === false) {[m[41m[m
+[32m+[m[32m      return res.status(403).json({[m[41m[m
+[32m+[m[32m        status: "error",[m[41m[m
+[32m+[m[32m        message:[m[41m[m
+[32m+[m[32m          "Your account is inactive.",[m[41m[m
+[32m+[m[32m      });[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // NORMALIZE DATABASE ROLE[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const databaseRole = user.role[m[41m[m
+[32m+[m[32m      ? String(user.role)[m[41m[m
+[32m+[m[32m          .trim()[m[41m[m
+[32m+[m[32m          .toLowerCase()[m[41m[m
+[32m+[m[32m      : null;[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // ROLE VALIDATION[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    if ([m[41m[m
+[32m+[m[32m      !databaseRole ||[m[41m[m
+[32m+[m[32m      !ALLOWED_ROLES.includes(databaseRole)[m[41m[m
+[32m+[m[32m    ) {[m[41m[m
+[32m+[m[32m      return res.status(403).json({[m[41m[m
+[32m+[m[32m        status: "error",[m[41m[m
+[32m+[m[32m        message:[m[41m[m
+[32m+[m[32m          "Your account has an invalid role.",[m[41m[m
+[32m+[m[32m        currentRole: user.role,[m[41m[m
+[32m+[m[32m        allowedRoles: ALLOWED_ROLES,[m[41m[m
+[32m+[m[32m      });[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // PASSWORD CHECK[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const passwordMatch =[m[41m[m
+[32m+[m[32m      await bcrypt.compare([m[41m[m
+[32m+[m[32m        String(password),[m[41m[m
+[32m+[m[32m        user.password_hash[m[41m[m
+[32m+[m[32m      );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    if (!passwordMatch) {[m[41m[m
+[32m+[m[32m      return res.status(401).json({[m[41m[m
+[32m+[m[32m        status: "error",[m[41m[m
+[32m+[m[32m        message:[m[41m[m
+[32m+[m[32m          "Invalid email or password.",[m[41m[m
+[32m+[m[32m      });[m[41m[m
+[32m+[m[32m    }[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // CREATE JWT[m[41m[m
+[32m+[m[32m    //[m[41m[m
+[32m+[m[32m    // IMPORTANT:[m[41m[m
+[32m+[m[32m    // Actual database role is stored in JWT.[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    const token = jwt.sign([m[41m[m
+[32m+[m[32m      {[m[41m[m
+[32m+[m[32m        id: user.id,[m[41m[m
+[32m+[m[32m        email: user.email,[m[41m[m
+[32m+[m[32m        role: databaseRole,[m[41m[m
+[32m+[m[32m      },[m[41m[m
+[32m+[m[32m      process.env.JWT_SECRET,[m[41m[m
+[32m+[m[32m      {[m[41m[m
+[32m+[m[32m        expiresIn: "1d",[m[41m[m
+[32m+[m[32m      }[m[41m[m
+[32m+[m[32m    );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // REMOVE PASSWORD HASH[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    delete user.password_hash;[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // Make sure response also contains normalized role[m[41m[m
+[32m+[m[32m    user.role = databaseRole;[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[32m    // SUCCESS RESPONSE[m[41m[m
+[32m+[m[32m    // --------------------------------------------------------[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    console.log([m[41m[m
+[32m+[m[32m      "LOGIN SUCCESS:",[m[41m[m
+[32m+[m[32m      {[m[41m[m
+[32m+[m[32m        id: user.id,[m[41m[m
+[32m+[m[32m        email: user.email,[m[41m[m
+[32m+[m[32m        role: user.role,[m[41m[m
+[32m+[m[32m      }[m[41m[m
+[32m+[m[32m    );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    return res.status(200).json({[m[41m[m
+[32m+[m[32m      status: "success",[m[41m[m
+[32m+[m[32m      message:[m[41m[m
+[32m+[m[32m        "Login successful.",[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m      user,[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m      token,[m[41m[m
+[32m+[m[32m    });[m[41m[m
+[32m+[m[32m  } catch (error) {[m[41m[m
+[32m+[m[32m    console.error([m[41m[m
+[32m+[m[32m      "LOGIN ERROR:",[m[41m[m
+[32m+[m[32m      error[m[41m[m
+[32m+[m[32m    );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    return res.status(500).json({[m[41m[m
+[32m+[m[32m      status: "error",[m[41m[m
+[32m+[m[32m      message:[m[41m[m
+[32m+[m[32m        "Login failed.",[m[41m[m
+[32m+[m[32m      detail: error.message,[m[41m[m
+[32m+[m[32m    });[m[41m[m
+[32m+[m[32m  }[m[41m[m
+[32m+[m[32m});[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================================[m[41m[m
+[32m+[m[32m// EXPORT[m[41m[m
+[32m+[m[32m// ============================================================[m[41m[m
+[32m+[m[41m[m
+ module.exports = router;[m
+\ No newline at end of file[m
+[1mdiff --git a/tracepaper-backend/server.js b/tracepaper-backend/server.js[m
+[1mindex 319f2a9..ac499ad 100644[m
+[1m--- a/tracepaper-backend/server.js[m
+[1m+++ b/tracepaper-backend/server.js[m
+[36m@@ -1,67 +1,156 @@[m
+[31m-const express = require("express");[m
+[31m-const cors = require("cors");[m
+[31m-require("dotenv").config();[m
+[31m-[m
+[31m-const pool = require("./db");[m
+[31m-const authRoutes = require("./routes/auth");[m
+[31m-[m
+[31m-const app = express();[m
+[31m-const PORT = process.env.PORT || 5000;[m
+[31m-[m
+[31m-// ============================================[m
+[31m-// MIDDLEWARE[m
+[31m-// ============================================[m
+[31m-[m
+[31m-app.use(cors());[m
+[31m-app.use(express.json());[m
+[31m-[m
+[31m-// ============================================[m
+[31m-// ROOT TEST ROUTE[m
+[31m-// ============================================[m
+[31m-[m
+[31m-app.get("/", (req, res) => {[m
+[31m-  res.json({[m
+[31m-    message: "TracePaper Backend is running!",[m
+[31m-    status: "success",[m
+[31m-  });[m
+[31m-});[m
+[31m-[m
+[31m-// ============================================[m
+[31m-// DATABASE TEST ROUTE[m
+[31m-// ============================================[m
+[31m-[m
+[31m-app.get("/api/db-test", async (req, res) => {[m
+[31m-  try {[m
+[31m-    const result = await pool.query("SELECT NOW()");[m
+[31m-[m
+[31m-    res.json({[m
+[31m-      status: "success",[m
+[31m-      message: "Neon PostgreSQL connected successfully!",[m
+[31m-      databaseTime: result.rows[0].now,[m
+[31m-    });[m
+[31m-  } catch (error) {[m
+[31m-    console.error("Database connection error:", error.message);[m
+[31m-[m
+[31m-    res.status(500).json({[m
+[31m-      status: "error",[m
+[31m-      message: "Database connection failed",[m
+[31m-      error: error.message,[m
+[31m-    });[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// ============================================[m
+[31m-// AUTH ROUTES[m
+[31m-// ============================================[m
+[31m-[m
+[31m-app.use("/api/auth", authRoutes);[m
+[31m-[m
+[31m-// ============================================[m
+[31m-// START SERVER[m
+[31m-// ============================================[m
+[31m-[m
+[31m-app.listen(PORT, () => {[m
+[31m-  console.log([m
+[31m-    `TracePaper Backend running on http://localhost:${PORT}`[m
+[31m-  );[m
+[32m+[m[32mconst express = require("express");[m[41m[m
+[32m+[m[32mconst cors = require("cors");[m[41m[m
+[32m+[m[32mrequire("dotenv").config();[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mconst pool = require("./db");[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// ROUTES[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mconst authRoutes = require("./routes/auth");[m[41m[m
+[32m+[m[32mconst dashboardRoutes = require("./routes/dashboard");[m[41m[m
+[32m+[m[32mconst investigationRoutes = require("./routes/investigations");[m[41m[m
+[32m+[m[32mconst usersRoutes = require("./routes/users");[m[41m[m
+[32m+[m[32mconst analyticsRoutes = require("./routes/analytics");[m[41m[m
+[32m+[m[32mconst reportsRoutes = require("./routes/reports");[m[41m[m
+[32m+[m[32mconst notificationsRoutes = require("./routes/notifications");[m[41m[m
+[32m+[m[32mconst questionPapersRoutes = require("./routes/questionPapers");[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// APP[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mconst app = express();[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// MIDDLEWARE[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use([m[41m[m
+[32m+[m[32m  cors({[m[41m[m
+[32m+[m[32m    origin: true,[m[41m[m
+[32m+[m[32m    credentials: true,[m[41m[m
+[32m+[m[32m  })[m[41m[m
+[32m+[m[32m);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use(express.json());[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// REQUEST LOGGER[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use((req, res, next) => {[m[41m[m
+[32m+[m[32m  console.log(`${req.method} ${req.originalUrl}`);[m[41m[m
+[32m+[m[32m  next();[m[41m[m
+[32m+[m[32m});[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// ROUTES[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use("/api/auth", authRoutes);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use("/api/dashboard", dashboardRoutes);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use("/api/investigations", investigationRoutes);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use("/api/users", usersRoutes);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use("/api/analytics", analyticsRoutes);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use("/api/reports", reportsRoutes);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use("/api/notifications", notificationsRoutes);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// QUESTION PAPER ROUTES[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use([m[41m[m
+[32m+[m[32m  "/api/question-papers",[m[41m[m
+[32m+[m[32m  questionPapersRoutes[m[41m[m
+[32m+[m[32m);[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// DATABASE TEST[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.get("/api/db-test", async (req, res) => {[m[41m[m
+[32m+[m[32m  try {[m[41m[m
+[32m+[m[32m    const result = await pool.query("SELECT NOW()");[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    res.json({[m[41m[m
+[32m+[m[32m      success: true,[m[41m[m
+[32m+[m[32m      message: "Neon PostgreSQL connected successfully",[m[41m[m
+[32m+[m[32m      time: result.rows[0].now,[m[41m[m
+[32m+[m[32m    });[m[41m[m
+[32m+[m[32m  } catch (error) {[m[41m[m
+[32m+[m[32m    console.error([m[41m[m
+[32m+[m[32m      "Database test error:",[m[41m[m
+[32m+[m[32m      error.message[m[41m[m
+[32m+[m[32m    );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m    res.status(500).json({[m[41m[m
+[32m+[m[32m      success: false,[m[41m[m
+[32m+[m[32m      message: "Database connection failed",[m[41m[m
+[32m+[m[32m      error: error.message,[m[41m[m
+[32m+[m[32m    });[m[41m[m
+[32m+[m[32m  }[m[41m[m
+[32m+[m[32m});[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// ROOT[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.get("/", (req, res) => {[m[41m[m
+[32m+[m[32m  res.json({[m[41m[m
+[32m+[m[32m    success: true,[m[41m[m
+[32m+[m[32m    message: "TracePaper Backend API is running",[m[41m[m
+[32m+[m[32m  });[m[41m[m
+[32m+[m[32m});[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// 404 HANDLER[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use((req, res) => {[m[41m[m
+[32m+[m[32m  res.status(404).json({[m[41m[m
+[32m+[m[32m    success: false,[m[41m[m
+[32m+[m[32m    message: "API route not found",[m[41m[m
+[32m+[m[32m    path: req.originalUrl,[m[41m[m
+[32m+[m[32m  });[m[41m[m
+[32m+[m[32m});[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// GLOBAL ERROR HANDLER[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.use((err, req, res, next) => {[m[41m[m
+[32m+[m[32m  console.error([m[41m[m
+[32m+[m[32m    "GLOBAL ERROR:",[m[41m[m
+[32m+[m[32m    err.stack || err.message[m[41m[m
+[32m+[m[32m  );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m  res.status(500).json({[m[41m[m
+[32m+[m[32m    success: false,[m[41m[m
+[32m+[m[32m    message: "Internal server error",[m[41m[m
+[32m+[m[32m  });[m[41m[m
+[32m+[m[32m});[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[32m// SERVER[m[41m[m
+[32m+[m[32m// ============================================[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mconst PORT = process.env.PORT || 5000;[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32mapp.listen(PORT, () => {[m[41m[m
+[32m+[m[32m  console.log([m[41m[m
+[32m+[m[32m    `TracePaper backend running on http://localhost:${PORT}`[m[41m[m
+[32m+[m[32m  );[m[41m[m
+[32m+[m[41m[m
+[32m+[m[32m  console.log([m[41m[m
+[32m+[m[32m    "Question Paper API: http://localhost:" +[m[41m[m
+[32m+[m[32m      `${PORT}/api/question-papers`[m[41m[m
+[32m+[m[32m  );[m[41m[m
+ });[m
+\ No newline at end of file[m

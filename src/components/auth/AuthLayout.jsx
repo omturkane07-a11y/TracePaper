@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import logo from "../../assets/tracepaper-logo.png";
 
-export default function AuthLayout({ children }) {
+export default function AuthLayout({ children, className = "" }) {
   return (
-    <div className="relative min-h-screen bg-[#07111f] flex overflow-hidden">
+    <div className={`auth-page ${className} relative min-h-screen bg-[#07111f] flex overflow-hidden`}>
 
       {/* ================= ANIMATED BACKGROUND ================= */}
 

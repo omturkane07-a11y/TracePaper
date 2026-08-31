@@ -8,14 +8,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { chartData } from "../../data/chartData";
-
-export default function InvestigationChart() {
+export default function InvestigationChart({ chartData = [] }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
 
       <div className="flex justify-between items-center mb-6">
-
         <div>
           <h2 className="text-xl font-bold text-slate-800">
             Leak Investigation Trend
@@ -25,45 +22,50 @@ export default function InvestigationChart() {
             Last 6 Months Analysis
           </p>
         </div>
-
       </div>
 
       <div className="h-[300px] mt-4">
 
-        <ResponsiveContainer width="100%" height="100%">
+        {chartData.length === 0 ? (
+          <div className="h-full flex items-center justify-center">
+            <p className="text-slate-400 text-sm">
+              No leak data available yet
+            </p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={chartData}
+              margin={{
+                top: 10,
+                right: 20,
+                left: 0,
+                bottom: 10,
+              }}
+            >
 
-          <LineChart
-            data={chartData}
-            margin={{
-              top: 10,
-              right: 20,
-              left: 0,
-              bottom: 10,
-            }}
-          >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#E2E8F0"
+              />
 
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="#E2E8F0"
-            />
+              <XAxis dataKey="month" />
 
-            <XAxis dataKey="month" />
+              <YAxis allowDecimals={false} />
 
-            <YAxis />
+              <Tooltip />
 
-            <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="leaks"
+                stroke="#2563EB"
+                strokeWidth={4}
+                dot={{ r: 6 }}
+              />
 
-            <Line
-              type="monotone"
-              dataKey="leaks"
-              stroke="#2563EB"
-              strokeWidth={4}
-              dot={{ r: 6 }}
-            />
-
-          </LineChart>
-
-        </ResponsiveContainer>
+            </LineChart>
+          </ResponsiveContainer>
+        )}
 
       </div>
 

@@ -7,7 +7,7 @@ export default function Login() {
   const navigate = useNavigate();
 
   return (
-    <AuthLayout>
+    <AuthLayout className="login-page">
 
       {/* Welcome Section */}
       <div className="text-center mb-7">

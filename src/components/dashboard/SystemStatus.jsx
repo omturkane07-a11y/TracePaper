@@ -5,38 +5,42 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-const statusData = [
-  {
-    title: "AI Detection Engine",
-    status: "Online",
-    icon: CheckCircle,
-    color: "text-green-600",
-  },
-  {
-    title: "Database",
-    status: "Healthy",
-    icon: Database,
-    color: "text-blue-600",
-  },
-  {
-    title: "Security Monitor",
-    status: "Protected",
-    icon: ShieldCheck,
-    color: "text-emerald-600",
-  },
-  {
-    title: "Leak Alerts",
-    status: "2 Active",
-    icon: AlertTriangle,
-    color: "text-red-600",
-  },
-];
+export default function SystemStatus({
+  leakAlerts = 0,
+  loading = false,
+}) {
+  const statusData = [
+    {
+      title: "Backend API",
+      status: loading ? "Checking..." : "Online",
+      icon: CheckCircle,
+      color: "text-green-600",
+    },
+    {
+      title: "Neon Database",
+      status: loading ? "Checking..." : "Connected",
+      icon: Database,
+      color: "text-blue-600",
+    },
+    {
+      title: "Security Monitor",
+      status: "Active",
+      icon: ShieldCheck,
+      color: "text-emerald-600",
+    },
+    {
+      title: "Leak Alerts",
+      status: loading
+        ? "Checking..."
+        : `${leakAlerts} Active`,
+      icon: AlertTriangle,
+      color: "text-red-600",
+    },
+  ];
 
-export default function SystemStatus() {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
 
-      {/* Header */}
       <div className="mb-6">
         <h2 className="text-xl font-bold text-slate-800">
           System Status
@@ -47,8 +51,8 @@ export default function SystemStatus() {
         </p>
       </div>
 
-      {/* Status List */}
       <div className="space-y-4">
+
         {statusData.map((item, index) => {
           const Icon = item.icon;
 
@@ -57,6 +61,7 @@ export default function SystemStatus() {
               key={index}
               className="flex items-center justify-between border-b border-slate-100 pb-3 last:border-none"
             >
+
               <div className="flex items-center gap-3">
 
                 <Icon
@@ -73,9 +78,11 @@ export default function SystemStatus() {
               <span className="text-sm font-semibold text-slate-600">
                 {item.status}
               </span>
+
             </div>
           );
         })}
+
       </div>
 
     </div>
